@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Game of life</title>
+    <script src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
+</head>
+<body>
+    <h1>Game of life</h1>
+    <pre id="board">
+______
+______
+______
+______
+______
+______
+    </pre>
+    <div id="newGamePanel">
+        <button id="newGameBtn">New game</button>
+        <input id="gameName" type="text" title="gameName"/>
+    </div>
+    <div id="gameControlsPanel">
+        <button id="gameStepBtn">Step</button>
+        generation: <span id="generation">-</span>
+    </div>
+
+    <script type="text/javascript">
+
+        function formatBoard(board) {
+            var frm = "";
+            for (var x = 0; x < board.length; x++) {
+                var row = board[x];
+                for (var y = 0; y < row.length; y++) {
+                    frm += row[y] === 1 ? '#' : '_';
+                }
+                frm += '\n';
+            }
+            return frm;
+        }
+
+        var gameId;
+
+        $(function() {
+           $('#newGameBtn').click(function(e) {
+               var name = $('#gameName').val();
+               $.ajax({
+                   url: 'http://localhost:8080/api/games'
+                   , dataType: 'json'
+                   , method: 'POST'
+                   , data: {
+                       name: name
+                   }
+               }).done(function (data) {
+                   gameId = data.id;
+                   $('#board').html(formatBoard(data.board.cells));
+                   $('#generation').html(data.generation);
+               }).fail(function (xhr, textStatus) {
+                   alert(textStatus);
+               });
+           });
+
+            $('#gameStepBtn').click(function (e) {
+                $.ajax({
+                    url: 'http://localhost:8080/api/games/' + gameId
+                    , dataType: 'json'
+                    , method: 'PUT'
+                }).done(function (data) {
+                    $('#board').html(formatBoard(data.board.cells));
+                    $('#generation').html(data.generation);
+                }).fail(function (xhr, textStatus) {
+                    alert(textStatus);
+                });
+            });
+        });
+    </script>
+
+</body>
+</html>
